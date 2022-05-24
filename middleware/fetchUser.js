@@ -8,7 +8,7 @@ const fetchUser = (req, res, next) => {
     }
     try {
         const data = jwt.verify(token, SECRET);
-        req.email = data;
+        req.id = data;
         next();
     } catch (err) {
         res.status(401).send({ error: "Please  using a valid token" })

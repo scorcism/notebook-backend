@@ -32,20 +32,35 @@ router.get('/createuser',
             let selectQuery = `select * from users where email='${email}';`;
             db.query(selectQuery, function (err, result) {
                 if (err) {
-                    return res.status(400).json({ errors: errors.array() });
+                    return res.status(400).json({ errors: "User already exists" });
                 }
+                // console.log(result)
                 if (result.length === 0) {
-                    let insertQuery = `insert into users(email,password,date_created,name) VALUES ('${email}','${securedPassword}',curdate(),'${name}');`;
+                    // let insertQuery = `insert into users(email,password,date_created,name) VALUES ('${email}','${securedPassword}',curdate(),'${name}');`;
+                    let insertQuery = `insert into users(email,password,date,name) VALUES ('${email}','${securedPassword}',curdate(),'${name}');`;
                     db.query(insertQuery, function (err, result) {
                         if (err) {
-                            return res.status(400).json({ errors: errors.array() });
+                            return res.status(400).json({ error: "Internal server occured" })
+                        }
+                        if (result) {
+
+                            // This is used to fetch user specific data - we can use session or cookie also here
+                            let fetchUserId = `SELECT id FROM users WHERE email='${email}'`;
+                            db.query(fetchUserId, (err, result) => {
+                                if (err) {
+                                    return res.status(400).json({ error: "Internal server occured" })
+                                }
+                                if (result) {
+                                    let userId = result[0].id;
+                                    // console.log(userId)
+                                    let authtoken = jwt.sign(userId, SECRET);
+                                    res.status(200).json({ authtoken }) // send the auth token for urther refrence
+                                }
+                            })
+
+
                         }
                     })
-                    // This is used to fetch user specific data - we can use session or cookie also here
-                    let data = email;
-                    const authtoken = jwt.sign(data, SECRET);
-
-                    return res.status(200).json({ authtoken }) // send the auth token for urther refrence
 
                 } else {
                     console.log("Error occured :")
@@ -89,34 +104,45 @@ router.get('/login',
                         if (!checkPassword) {
                             return res.status(400).json("Please try to login with correct credentials");
                         }
-                        const authtoken = jwt.sign(userEmail, SECRET);
-                        res.json({ authtoken })
+                        let fetchUserId = `SELECT id FROM users WHERE email='${userEmail}'`;
+                        db.query(fetchUserId, (err, result) => {
+                            if (err) {
+                                return res.status(400).json({ error: "Internal server occured" })
+                            }
+                            if (result) {
+                                let userId = result[0].id;
+                                // console.log(userId)
+                                let authtoken = jwt.sign(userId, SECRET);
+                                res.status(200).json({ authtoken }) // send the auth token for urther refrence
+                            }
+                        })
                     }
                     check();
                 }
             })
         } catch (err) {
             console.error(err.message);
-            return res.status(500).send("Internal Server Error");
+            return res.status(500).json({ error: "Internal Server Error" });
         }
     })
 
 // Here we will use middlewere which will first fetch the auth jwt token from the header
 // Also this will verify if the token is correct or not. using jwt.verify
 router.get('/getuser', fetchUser, (req, res) => {
-    const email = req.email;
+    const id = req.id;
+    console.log(id)
     try {
-        let getDataStatement = `SELECT * FROM users WHERE email='${email}'`;
+        let getDataStatement = `SELECT * FROM users WHERE id='${id}'`;
         db.query(getDataStatement, (err, result) => {
             if (err) console.log(err)
             else {
-                console.log(result)
+                // console.log(result)
                 res.status(200).json({ result })
             }
         })
     } catch (err) {
         console.error(err.message);
-        return res.status(500).send("Internal Server Error");
+        return res.status(500).json({ error: "Internal Server Error" });
     }
 
 })
