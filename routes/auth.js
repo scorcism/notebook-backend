@@ -29,6 +29,7 @@ router.get('/createuser',
 
             const salt = bcrypt.genSaltSync(10);
             const securedPassword = bcrypt.hashSync(password, salt);
+            // if user exists or not
             let selectQuery = `select * from users where email='${email}';`;
             db.query(selectQuery, function (err, result) {
                 if (err) {
@@ -37,10 +38,11 @@ router.get('/createuser',
                 // console.log(result)
                 if (result.length === 0) {
                     // let insertQuery = `insert into users(email,password,date_created,name) VALUES ('${email}','${securedPassword}',curdate(),'${name}');`;
-                    let insertQuery = `insert into users(email,password,date,name) VALUES ('${email}','${securedPassword}',curdate(),'${name}');`;
+                    let insertQuery = `insert into users(name,email,password,date) VALUES ('${name}','${email}','${securedPassword}',curdate());`;
+                    console.log(insertQuery)
                     db.query(insertQuery, function (err, result) {
                         if (err) {
-                            return res.status(400).json({ error: "Internal server occured" })
+                            return res.status(400).json({ error: err })
                         }
                         if (result) {
 
