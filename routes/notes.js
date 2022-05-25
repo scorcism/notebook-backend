@@ -132,8 +132,72 @@ router.put('/updatenote/:id', fetchUser, (req, res) => {
 
 })
 
-router.delete('/deletenote/:id', (req, res) => {
-  res.send("This is delete note");
+router.delete('/deletenote/:id', fetchUser, (req, res) => {
+  // 1: Check if the id provider in params exists or not 
+  try {
+    // if user exists or not
+    let deleteNoteId = req.params.id;
+    let checkIdQuery = `select id from notes where id='${deleteNoteId}';`;
+    // console.log(updateQuery)
+    db.query(checkIdQuery, function (err, result) {
+      if (err) {
+        return res.status(404).json({ errors: "Notes not Found pal" });
+      }
+      console.log(result)
+      if (result.length == 0) {
+        return res.status(200).json("Doesn't exists")
+      } else {
+        // 2: Check if the user id in the request is same as the new note user id 
+        // As we have auth-token in the request header
+        let reqUserId = req.id;
+        console.log("reqUserId: ", reqUserId)
+        // for new not euser id will check with the dp
+        try {
+          let checkUserIdQuery = `select user_id from notes where id='${deleteNoteId}';`;
+          console.log(checkUserIdQuery)
+          db.query(checkUserIdQuery, (err, result) => {
+            if (err) {
+              return res.status(404).json({ errors: "Notes not Found pal" });
+            }
+            if (result) {
+              // console.log(result)
+              let reqNoteUserId = result[0].user_id
+              console.log("reqNoteUserId: ", reqNoteUserId)
+              // comparing both requestUserId and reqNoteUserId
+              if (reqNoteUserId == reqUserId) {
+                console.log("Same same")
+                // 3: If 1 and 2 fails means the user is a valid user
+                // deleteing the existing data
+                try {
+
+                  let deleteStatement = `DELETE FROM notes WHERE id=${deleteNoteId};`;
+                  console.log(deleteStatement)
+                  db.query(deleteStatement, (err, result) => {
+                    if (err) {
+                      return res.status(500).json({ error: "Internal Server Error" });
+                    }
+                    if (result) {
+                      res.status(200).json("Note Deleted")
+                    }
+                  })
+                } catch (err) {
+                  return res.status(500).json({ error: "Internal Server Error" });
+                }
+              } else {
+                return res.status(401).json({ error: "Not Allowed" });
+              }
+            }
+          })
+        } catch (err) {
+          //  console.log(error.message);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+      }
+    })
+  } catch (error) {
+    // console.log(error.message);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 })
 
 
