@@ -10,12 +10,12 @@ router.get('/', (req, res) => {
   res.send('Hello this is notes.js!')
 })
 
-router.get('/fetchnotes', fetchUser, (req, res) => {
+router.post('/fetchnotes', fetchUser, (req, res) => {
   try {
     let userId = req.id;
-    console.log("Email: ", userId);
+    // console.log("Email: ", userId);
     let fetchQuery = `SELECT * FROM notes WHERE user_id=${userId};`;
-    console.log("Query: ", fetchQuery)
+    // console.log("Query: ", fetchQuery)
     db.query(fetchQuery, (err, result) => {
       if (err) {
         return res.status(500).json({ erorr: "Internal server error" })
@@ -128,8 +128,32 @@ router.put('/updatenote/:id', fetchUser, (req, res) => {
     // console.log(error.message);
     return res.status(500).json({ error: "Internal Server Error" });
   }
-
-
+})
+router.post('/cat/:tag', fetchUser, (req, res) => {
+  // 1: Check if the id provider in params exists or not 
+  try {
+    // if user exists or not
+    let tag = req.params.tag;
+    let reqUserId = req.id;
+    console.log(req.id)
+    let getQuery = `select * from notes where id=${reqUserId} and tag="${tag}";`;
+    if(tag.localeCompare("all")==0){
+      getQuery = `select * from notes where id=${reqUserId};`;
+    }
+    console.log(getQuery)
+    db.query(getQuery,(error,result)=>{
+      if(error){
+        console.log(error.message);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+      if(result){
+        return res.status(200).json({result})
+      }
+    })
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 })
 
 router.delete('/deletenote/:id', fetchUser, (req, res) => {

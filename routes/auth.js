@@ -12,15 +12,15 @@ router.get('/', (req, res) => {
     res.send('Auth Endpoint')
 })
 
-router.get('/createuser',
-    [body('name', 'Enter a valid name').isLength({ min: 5 }),
+router.post('/createuser',
+    [body('name', 'Enter a valid name').isLength({ min: 3 }),
     body('email', 'Enter a valid email').isEmail(),
-    body('password', 'Enter a valid password  of length 8').isLength({ min: 8 })
+    body('password', 'Enter a valid password  of length 8').isLength({ min: 5 })
     ], async (req, res) => {
         // If there are errors
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+            return res.status(400).json({ error: "Name and Password should be more then 3 and 8 && valid email :)"});
         }
         try {
             const email = req.body.email
@@ -33,7 +33,7 @@ router.get('/createuser',
             let selectQuery = `select * from users where email='${email}';`;
             db.query(selectQuery, function (err, result) {
                 if (err) {
-                    return res.status(400).json({ errors: "User already exists" });
+                    return res.status(400).json({ error: "User already exists" });
                 }
                 // console.log(result)
                 if (result.length === 0) {
@@ -76,35 +76,43 @@ router.get('/createuser',
         }
     })
 
-router.get('/login',
+router.post('/login',
     [body('email', 'Enter a valid email').isEmail(),
     body('password', 'Password filed cannot be empty').exists()
     ],
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+            return res.status(400).json({ error: "Fields cannot be Empty :)"});
         }
         // const { email, password } = req.body;
         let userEmail = req.body.email;
         let userPassword = req.body.password;
+        // console.log("pass: ", userPassword)
+        // console.log("email: ", userEmail)
         try {
             let selectQuery = `select * from users where email='${userEmail}';`;
             let securedPassword;
             db.query(selectQuery, function (err, result) {
-                if (err) console.log(err);
+                if (err) {
+                    // console.error(err.message);
+                    return res.status(500).json({ error: "Internal Server Error" });
+                };
                 // console.log(result.length)
                 if (result.length === 0) {
-                    console.log("Login error :")
+                    // console.log("Login error :")
                     return res.status(403).json({ error: "Login with the correct credentail" })
                 } else {
                     securedPassword = result[0].password
+                    // console.log("secured Pas: ",securedPassword)
+                    // console.log("user Pas: ",userPassword)
                     userEmail = result[0].email
                     // console.log(securedPassword)
                     const check = async () => {
                         let checkPassword = await bcrypt.compare(userPassword, securedPassword)
+                        // console.log("check pass", checkPassword)
                         if (!checkPassword) {
-                            return res.status(400).json("Please try to login with correct credentials");
+                            return res.status(400).json({error:"Please try to login with correct credentials"});
                         }
                         let fetchUserId = `SELECT id FROM users WHERE email='${userEmail}'`;
                         db.query(fetchUserId, (err, result) => {
@@ -130,7 +138,7 @@ router.get('/login',
 
 // Here we will use middlewere which will first fetch the auth jwt token from the header
 // Also this will verify if the token is correct or not. using jwt.verify
-router.get('/getuser', fetchUser, (req, res) => {
+router.post('/getuser', fetchUser, (req, res) => {
     const id = req.id;
     console.log(id)
     try {

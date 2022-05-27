@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 var cors = require('cors')
 const app = express()
-const port = 3001
+const port = 5000
 app.use(cors())
 app.use(express.json()) // this is used to parse all the incoming data 
 const db = require('./db')
