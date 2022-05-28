@@ -14,7 +14,7 @@ router.post('/fetchnotes', fetchUser, (req, res) => {
   try {
     let userId = req.id;
     // console.log("Email: ", userId);
-    let fetchQuery = `SELECT * FROM notes WHERE user_id=${userId};`;
+    let fetchQuery = `SELECT * FROM notes3 WHERE user_id=${userId};`;
     // console.log("Query: ", fetchQuery)
     db.query(fetchQuery, (err, result) => {
       if (err) {
@@ -44,10 +44,11 @@ router.post('/addnote', fetchUser, [
 
   try {
 
-    let insertQuery = `INSERT INTO notes (title, description, tag, date, user_id) VALUES ("${title}","${description}","${tag}",curdate(), ${userId});`;
+    let insertQuery = `INSERT INTO notes3 (title, description, tag, date, user_id) VALUES ("${title}","${description}","${tag}",curdate(), ${userId});`;
     db.query(insertQuery, (err, result) => {
       if (err) {
-        return res.status("500").json({ error: "Internal server error :( " });
+        console.log(err)
+        return res.status(500).json({ error: "Internal server error :( " });
       }
       if (result) {
         res.status(200).json("Note Inserted successfully")
@@ -67,7 +68,7 @@ router.put('/updatenote/:id', fetchUser, (req, res) => {
   try {
     // if user exists or not
     let updateNoteId = req.params.id;
-    let updateQuery = `select id from notes where id='${updateNoteId}';`;
+    let updateQuery = `select id from notes3 where id='${updateNoteId}';`;
     // console.log(updateQuery)
     db.query(updateQuery, function (err, result) {
       if (err) {
@@ -83,7 +84,7 @@ router.put('/updatenote/:id', fetchUser, (req, res) => {
         console.log("reqUserId: ", reqUserId)
         // for new not euser id will check with the dp
         try {
-          let updateQuery = `select user_id from notes where id='${updateNoteId}';`;
+          let updateQuery = `select user_id from notes3 where id='${updateNoteId}';`;
           console.log(updateQuery)
           db.query(updateQuery, (err, result) => {
             if (err) {
@@ -100,7 +101,7 @@ router.put('/updatenote/:id', fetchUser, (req, res) => {
                 // Updating the existing data
                 try {
 
-                  let updateStatement = `UPDATE notes SET title="${title}", description="${description}", tag="${tag}" WHERE id=${updateNoteId};`;
+                  let updateStatement = `UPDATE notes3 SET title="${title}", description="${description}", tag="${tag}" WHERE id=${updateNoteId};`;
                   console.log(updateStatement)
                   db.query(updateStatement, (err, result) => {
                     if (err) {
@@ -136,9 +137,9 @@ router.post('/cat/:tag', fetchUser, (req, res) => {
     let tag = req.params.tag;
     let reqUserId = req.id;
     console.log(req.id)
-    let getQuery = `select * from notes where id=${reqUserId} and tag="${tag}";`;
+    let getQuery = `select * from notes3 where id=${reqUserId} and tag="${tag}";`;
     if(tag.localeCompare("all")==0){
-      getQuery = `select * from notes where id=${reqUserId};`;
+      getQuery = `select * from notes3 where id=${reqUserId};`;
     }
     console.log(getQuery)
     db.query(getQuery,(error,result)=>{
@@ -161,7 +162,7 @@ router.delete('/deletenote/:id', fetchUser, (req, res) => {
   try {
     // if user exists or not
     let deleteNoteId = req.params.id;
-    let checkIdQuery = `select id from notes where id='${deleteNoteId}';`;
+    let checkIdQuery = `select id from notes3 where id='${deleteNoteId}';`;
     // console.log(updateQuery)
     db.query(checkIdQuery, function (err, result) {
       if (err) {
@@ -177,7 +178,7 @@ router.delete('/deletenote/:id', fetchUser, (req, res) => {
         console.log("reqUserId: ", reqUserId)
         // for new not euser id will check with the dp
         try {
-          let checkUserIdQuery = `select user_id from notes where id='${deleteNoteId}';`;
+          let checkUserIdQuery = `select user_id from notes3 where id='${deleteNoteId}';`;
           console.log(checkUserIdQuery)
           db.query(checkUserIdQuery, (err, result) => {
             if (err) {
@@ -194,7 +195,7 @@ router.delete('/deletenote/:id', fetchUser, (req, res) => {
                 // deleteing the existing data
                 try {
 
-                  let deleteStatement = `DELETE FROM notes WHERE id=${deleteNoteId};`;
+                  let deleteStatement = `DELETE FROM notes3 WHERE id=${deleteNoteId};`;
                   console.log(deleteStatement)
                   db.query(deleteStatement, (err, result) => {
                     if (err) {

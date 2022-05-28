@@ -30,7 +30,7 @@ router.post('/createuser',
             const salt = bcrypt.genSaltSync(10);
             const securedPassword = bcrypt.hashSync(password, salt);
             // if user exists or not
-            let selectQuery = `select * from users where email='${email}';`;
+            let selectQuery = `select * from users2 where email='${email}';`;
             db.query(selectQuery, function (err, result) {
                 if (err) {
                     return res.status(400).json({ error: "User already exists" });
@@ -38,7 +38,7 @@ router.post('/createuser',
                 // console.log(result)
                 if (result.length === 0) {
                     // let insertQuery = `insert into users(email,password,date_created,name) VALUES ('${email}','${securedPassword}',curdate(),'${name}');`;
-                    let insertQuery = `insert into users(name,email,password,date) VALUES ('${name}','${email}','${securedPassword}',curdate());`;
+                    let insertQuery = `insert into users2(name,email,password,date) VALUES ('${name}','${email}','${securedPassword}',curdate());`;
                     console.log(insertQuery)
                     db.query(insertQuery, function (err, result) {
                         if (err) {
@@ -47,7 +47,7 @@ router.post('/createuser',
                         if (result) {
 
                             // This is used to fetch user specific data - we can use session or cookie also here
-                            let fetchUserId = `SELECT id FROM users WHERE email='${email}'`;
+                            let fetchUserId = `SELECT id FROM users2 WHERE email='${email}'`;
                             db.query(fetchUserId, (err, result) => {
                                 if (err) {
                                     return res.status(400).json({ error: "Internal server occured" })
@@ -91,7 +91,7 @@ router.post('/login',
         // console.log("pass: ", userPassword)
         // console.log("email: ", userEmail)
         try {
-            let selectQuery = `select * from users where email='${userEmail}';`;
+            let selectQuery = `select * from users2 where email='${userEmail}';`;
             let securedPassword;
             db.query(selectQuery, function (err, result) {
                 if (err) {
@@ -114,7 +114,7 @@ router.post('/login',
                         if (!checkPassword) {
                             return res.status(400).json({error:"Please try to login with correct credentials"});
                         }
-                        let fetchUserId = `SELECT id FROM users WHERE email='${userEmail}'`;
+                        let fetchUserId = `SELECT id FROM users2 WHERE email='${userEmail}'`;
                         db.query(fetchUserId, (err, result) => {
                             if (err) {
                                 return res.status(400).json({ error: "Internal server occured" })
@@ -142,7 +142,7 @@ router.post('/getuser', fetchUser, (req, res) => {
     const id = req.id;
     console.log(id)
     try {
-        let getDataStatement = `SELECT * FROM users WHERE id='${id}'`;
+        let getDataStatement = `SELECT * FROM users2 WHERE id='${id}'`;
         db.query(getDataStatement, (err, result) => {
             if (err) console.log(err)
             else {
